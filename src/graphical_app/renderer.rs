@@ -1,0 +1,309 @@
+use std::array;
+use std::time::Instant;
+
+use glam::Vec3;
+use rand::random_range;
+use wgpu::util::DeviceExt;
+use winit::keyboard::KeyCode;
+
+use crate::graphical_app::camera::{Camera, CameraController, CameraUniform};
+use crate::graphical_app::mesh::{Mesh, MeshId, unit_cube, unit_cylinder, unit_sphere};
+use crate::graphical_app::pipeline::{DEPTH_FORMAT, SimplePipelineManager};
+use crate::graphical_app::scene::Scene;
+use crate::graphical_app::wgpu_state::WgpuState;
+
+/// Owns everything needed to simulate and draw the world: the GPU core, the
+/// render pipeline, the camera, the depth buffer, the mesh library, and the scene.
+pub struct Renderer {
+    pub gpu: WgpuState,
+    pipeline_manager: SimplePipelineManager,
+
+    pub camera: Camera,
+    pub controller: CameraController,
+    camera_uniform_buffer: wgpu::Buffer,
+    camera_bind_group: wgpu::BindGroup,
+
+    depth_view: wgpu::TextureView,
+
+    meshes: Vec<Option<Mesh>>,
+    scene: Scene,
+
+    last_frame: Instant,
+}
+
+impl Renderer {
+    pub fn new(gpu: WgpuState) -> Self {
+        // The surface hasn't been configured yet (WgpuState::new only builds the
+        // resources); configure it now so the first frame has a valid swapchain.
+        gpu.surface.configure(&gpu.device, &gpu.config);
+
+        let pipeline_manager = SimplePipelineManager::new(&gpu.device, gpu.config.format);
+
+        let camera = Camera::new(gpu.config.width as f32 / gpu.config.height as f32);
+        let controller = CameraController::new();
+
+        let camera_uniform = CameraUniform::from_camera(&camera);
+        let camera_uniform_buffer =
+            gpu.device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("Camera Uniform Buffer"),
+                    contents: bytemuck::bytes_of(&camera_uniform),
+                    usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                });
+        let camera_bind_group = gpu.device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("Camera Bind Group"),
+            layout: &pipeline_manager.camera_bind_group_layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: camera_uniform_buffer.as_entire_binding(),
+            }],
+        });
+
+        let depth_view = create_depth_view(&gpu.device, &gpu.config);
+
+        // Build the unit mesh library. Objects reuse these, scaled per-instance.
+        let mut meshes = Vec::with_capacity(MeshId::MeshCount as usize);
+        for _ in 0..MeshId::MeshCount as usize {
+            meshes.push(None);
+        }
+
+        let (cv, ci) = unit_cube();
+        meshes[MeshId::Cube as usize] = Some(Mesh::new(&gpu.device, "Cube", &cv, &ci));
+
+        let (sv, si) = unit_sphere(16, 12);
+        meshes[MeshId::Sphere as usize] = Some(Mesh::new(&gpu.device, "Sphere", &sv, &si));
+
+        let (cyv, cyi) = unit_cylinder(24);
+        meshes[MeshId::Cylinder as usize] = Some(Mesh::new(&gpu.device, "Cylinder", &cyv, &cyi));
+
+        let scene = build_demo_scene();
+
+        Self {
+            gpu,
+            pipeline_manager,
+            camera,
+            controller,
+            camera_uniform_buffer,
+            camera_bind_group,
+            depth_view,
+            meshes,
+            scene,
+            last_frame: Instant::now(),
+        }
+    }
+
+    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+        self.gpu.resize_surface(new_size);
+        self.depth_view = create_depth_view(&self.gpu.device, &self.gpu.config);
+        self.camera.aspect = self.gpu.config.width as f32 / self.gpu.config.height as f32;
+        self.gpu.window.request_redraw();
+    }
+
+    pub fn key_changed(&mut self, key: KeyCode, pressed: bool) {
+        self.controller.key_changed(key, pressed);
+    }
+
+    pub fn set_looking(&mut self, looking: bool) {
+        self.controller.looking = looking;
+    }
+
+    pub fn mouse_motion(&mut self, dx: f32, dy: f32) {
+        self.controller.mouse_motion(dx, dy);
+    }
+
+    /// Advance one frame of simulation and camera motion, then upload the camera
+    /// uniform. Call once per frame before [`render`](Self::render).
+    pub fn update(&mut self) {
+        let now = Instant::now();
+        let dt = (now - self.last_frame).as_secs_f32().min(0.1);
+        self.last_frame = now;
+
+        self.controller.update_camera(&mut self.camera, dt);
+        self.scene.step();
+
+        let camera_uniform = CameraUniform::from_camera(&self.camera);
+        self.gpu.queue.write_buffer(
+            &self.camera_uniform_buffer,
+            0,
+            bytemuck::bytes_of(&camera_uniform),
+        );
+    }
+
+    /// Draw the current scene into the given swapchain view.
+    pub fn render(&self, view: &wgpu::TextureView) {
+        // Build one instance buffer per mesh type from the current body poses.
+        let mut draws: Vec<(&Mesh, wgpu::Buffer, u32)> = Vec::new();
+        for mesh_id in MeshId::all_mesh_ids() {
+            if let Some(mesh) = self.meshes[mesh_id as usize].as_ref() {
+                let instances = self.scene.instances_for(mesh_id);
+                if instances.is_empty() {
+                    continue;
+                }
+                let buffer =
+                    self.gpu
+                        .device
+                        .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                            label: Some("Instance Buffer"),
+                            contents: bytemuck::cast_slice(&instances),
+                            usage: wgpu::BufferUsages::VERTEX,
+                        });
+                draws.push((mesh, buffer, instances.len() as u32));
+            }
+        }
+
+        let mut encoder = self
+            .gpu
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("Frame Encoder"),
+            });
+        {
+            let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("Main Pass"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 0.05,
+                            g: 0.06,
+                            b: 0.08,
+                            a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &self.depth_view,
+                    depth_ops: Some(wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(1.0),
+                        store: wgpu::StoreOp::Store,
+                    }),
+                    stencil_ops: None,
+                }),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+
+            rpass.set_pipeline(&self.pipeline_manager.render_pipeline);
+            rpass.set_bind_group(0, &self.camera_bind_group, &[]);
+
+            for (mesh, instance_buffer, instance_count) in &draws {
+                rpass.set_vertex_buffer(0, mesh.vertex_buffer.slice(..));
+                rpass.set_vertex_buffer(1, instance_buffer.slice(..));
+                rpass.set_index_buffer(mesh.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+                rpass.draw_indexed(0..mesh.num_indices, 0, 0..*instance_count);
+            }
+        }
+
+        self.gpu.queue.submit(Some(encoder.finish()));
+    }
+}
+
+fn create_depth_view(
+    device: &wgpu::Device,
+    config: &wgpu::SurfaceConfiguration,
+) -> wgpu::TextureView {
+    let texture = device.create_texture(&wgpu::TextureDescriptor {
+        label: Some("Depth Texture"),
+        size: wgpu::Extent3d {
+            width: config.width.max(1),
+            height: config.height.max(1),
+            depth_or_array_layers: 1,
+        },
+        mip_level_count: 1,
+        sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: DEPTH_FORMAT,
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        view_formats: &[],
+    });
+    texture.create_view(&wgpu::TextureViewDescriptor::default())
+}
+
+/// A small starter world: a ground plane (fixed box) plus a few dynamic bodies
+/// that fall and settle. Replace/extend this as the creature body takes shape.
+fn build_demo_scene() -> Scene {
+    let mut scene = Scene::new();
+
+    let box_edge = 100.0;
+    let box_thickness = 1.0;
+
+    scene.spawn_fixed_box(
+        Vec3::new(box_edge, 0.0, 0.0),
+        Vec3::new(box_thickness, box_edge, box_edge),
+        Vec3::new(0.35, 0.37, 0.4),
+    );
+
+    scene.spawn_fixed_box(
+        Vec3::new(0.0, 0.0, box_edge),
+        Vec3::new(box_edge, box_edge, box_thickness),
+        Vec3::new(0.35, 0.37, 0.4),
+    );
+
+    scene.spawn_fixed_box(
+        Vec3::new(-box_edge, 0.0, 0.0),
+        Vec3::new(box_thickness, box_edge, box_edge),
+        Vec3::new(0.35, 0.37, 0.4),
+    );
+
+    scene.spawn_fixed_box(
+        Vec3::new(0.0, 0.0, -box_edge),
+        Vec3::new(box_edge, box_edge, box_thickness),
+        Vec3::new(0.35, 0.37, 0.4),
+    );
+
+    scene.spawn_fixed_box(
+        Vec3::new(0.0, -box_edge, 0.0),
+        Vec3::new(box_edge, box_thickness, box_edge),
+        Vec3::new(0.35, 0.37, 0.4),
+    );
+
+    scene.spawn_fixed_box(
+        Vec3::new(-5.0, 0.5, 0.0),
+        Vec3::new(2.0, 1.0, 2.0),
+        Vec3::new(0.3, 0.45, 0.5),
+    );
+
+    // Dynamic bodies (future creature parts) dropped from a height.
+    scene.spawn_dynamic_box(
+        Vec3::new(0.0, 6.0, 0.0),
+        Vec3::new(0.5, 0.5, 0.5),
+        Vec3::new(0.85, 0.4, 0.35),
+    );
+    scene.spawn_dynamic_box(
+        Vec3::new(0.4, 9.0, 0.2),
+        Vec3::new(0.5, 0.25, 0.75),
+        Vec3::new(0.4, 0.75, 0.5),
+    );
+
+    scene.spawn_dynamic_cylinder(
+        Vec3::new(0.4, 9.0, 0.2),
+        1.0,
+        5.0,
+        Vec3::new(0.6, 0.25, 0.3),
+    );
+
+    for i in 0..700 {
+        let random_pos = Vec3::from_array(array::from_fn(|_| random_range(-box_edge..box_edge)));
+        let random_color = Vec3::from_array(array::from_fn(|_| random_range(0.0..1.0)));
+
+        scene.spawn_dynamic_ball(random_pos, random_color.z * 5.0, random_color);
+    }
+
+    for i in 0..700 {
+        let random_pos = Vec3::from_array(array::from_fn(|_| random_range(-box_edge..box_edge)));
+        let random_color = Vec3::from_array(array::from_fn(|_| random_range(0.0..1.0)));
+
+        scene.spawn_dynamic_cylinder(
+            random_pos,
+            random_color.x * 5.0,
+            random_color.y * 8.0,
+            random_color,
+        );
+    }
+
+    scene
+}
