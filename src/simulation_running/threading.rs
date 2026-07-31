@@ -3,6 +3,7 @@ use std::{
     println,
     sync::{Arc, OnceLock},
     thread::{self, JoinHandle},
+    todo,
 };
 
 use crossbeam::{atomic::AtomicCell, queue::ArrayQueue};
@@ -34,6 +35,14 @@ impl SimulationThreadHandle {
             join_handle: None,
             models_to_draw: Arc::new(OnceLock::new()),
             command: Arc::from(AtomicCell::from(ThreadCommand::NoCommand)),
+        }
+    }
+
+    pub fn get_new_instances(&self) -> Option<Vec<(MeshId, Vec<InstanceRaw>)>> {
+        if let Some(queue) = self.models_to_draw.get() {
+            queue.pop()
+        } else {
+            None
         }
     }
 

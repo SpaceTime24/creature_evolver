@@ -6,7 +6,7 @@ use winit::keyboard::KeyCode;
 use crate::graphical_app::camera::{Camera, CameraController, CameraUniform};
 use crate::graphical_app::mesh::{Mesh, MeshId, unit_cube, unit_cylinder, unit_sphere};
 use crate::graphical_app::pipeline::{DEPTH_FORMAT, SimplePipelineManager};
-use crate::graphical_app::scene::Scene;
+use crate::graphical_app::scene::{InstanceRaw, Scene};
 use crate::graphical_app::wgpu_state::WgpuState;
 use crate::simulation_running::threading::SimulationThreadHandle;
 
@@ -129,12 +129,31 @@ impl Renderer {
 
     /// Draw the current scene into the given swapchain view.
     pub fn render(&self, view: &wgpu::TextureView, thread_handles: &Vec<SimulationThreadHandle>) {
+        let mut instance_holders: [Vec<InstanceRaw>; MeshId::MeshCount as usize] =
+            [const { Vec::new() }; MeshId::MeshCount as usize];
+
+        let mut mesh_type_count = 0;
+
+        for thread_handle in thread_handles {
+            if let Some(mesh_instance_pairs) = thread_handle.get_new_instances() {
+                for (mesh_id, instances) in mesh_instance_pairs {
+                    if instance_holders[mesh_id as usize].is_empty() {
+                        mesh_type_count += 1;
+                    }
+                    for instance in instances {
+                        instance_holders[mesh_id as usize].push(instance);
+                    }
+                }
+            }
+        }
+
         // Build one instance buffer per mesh type from the current body poses.
-        let mut draws: Vec<(&Mesh, wgpu::Buffer, u32)> = Vec::new();
+        let mut draws: Vec<(&Mesh, wgpu::Buffer, u32)> = Vec::with_capacity(mesh_type_count);
         for mesh_id in MeshId::all_mesh_ids() {
             if let Some(mesh) = self.meshes[mesh_id as usize].as_ref() {
-                let instances = self.scene.instances_for(mesh_id);
+                let instances = &instance_holders[mesh_id as usize];
                 if instances.is_empty() {
+                    //I think this check can be removed
                     continue;
                 }
                 let buffer =
@@ -148,6 +167,28 @@ impl Renderer {
                 draws.push((mesh, buffer, instances.len() as u32));
             }
         }
+
+        ////OLD CODE
+
+        // Build one instance buffer per mesh type from the current body poses.
+        // let mut draws: Vec<(&Mesh, wgpu::Buffer, u32)> = Vec::new();
+        // for mesh_id in MeshId::all_mesh_ids() {
+        //     if let Some(mesh) = self.meshes[mesh_id as usize].as_ref() {
+        //         let instances = self.scene.instances_for(mesh_id);
+        //         if instances.is_empty() {
+        //             continue;
+        //         }
+        //         let buffer =
+        //             self.gpu
+        //                 .device
+        //                 .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        //                     label: Some("Instance Buffer"),
+        //                     contents: bytemuck::cast_slice(&instances),
+        //                     usage: wgpu::BufferUsages::VERTEX,
+        //                 });
+        //         draws.push((mesh, buffer, instances.len() as u32));
+        //     }
+        // }
 
         let mut encoder = self
             .gpu

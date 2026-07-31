@@ -71,8 +71,8 @@ impl<'world_life> Creature<'world_life> {
     //}
 
     pub fn get_raw_instances(&self) -> Vec<(MeshId, Vec<InstanceRaw>)> {
-        let mut instance_holders: [Option<Vec<InstanceRaw>>; MeshId::MeshCount as usize] =
-            [const { None }; MeshId::MeshCount as usize];
+        let mut instance_holders: [Vec<InstanceRaw>; MeshId::MeshCount as usize] =
+            [const { Vec::new() }; MeshId::MeshCount as usize];
 
         let mut mesh_type_count = 0;
 
@@ -98,14 +98,10 @@ impl<'world_life> Creature<'world_life> {
                         model: model.to_cols_array_2d(),
                         color: link_color.extend(1.0).to_array(),
                     };
-                    if instance_holders[mesh_id as usize].is_none() {
-                        instance_holders[mesh_id as usize] = Some(Vec::new());
+                    if instance_holders[mesh_id as usize].is_empty() {
                         mesh_type_count += 1;
                     }
-                    instance_holders[mesh_id as usize]
-                        .as_mut()
-                        .unwrap()
-                        .push(new_instance);
+                    instance_holders[mesh_id as usize].push(new_instance);
                 }
             }
         }
@@ -113,8 +109,8 @@ impl<'world_life> Creature<'world_life> {
         let mut out_vec = Vec::with_capacity(mesh_type_count);
 
         for (mesh_id, instance_list) in zip(MeshId::all_mesh_ids(), instance_holders) {
-            if let Some(instances) = instance_list {
-                out_vec.push((mesh_id, instances));
+            if !instance_list.is_empty() {
+                out_vec.push((mesh_id, instance_list));
             }
         }
 
