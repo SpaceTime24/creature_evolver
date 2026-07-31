@@ -9,8 +9,10 @@ use winit::{
     window::CursorGrabMode,
 };
 
-use crate::graphical_app::renderer::Renderer;
 use crate::graphical_app::wgpu_state::WgpuState;
+use crate::{
+    graphical_app::renderer::Renderer, simulation_running::threading::SimulationThreadHandle,
+};
 
 enum AppState {
     Uninitialized,
@@ -18,19 +20,21 @@ enum AppState {
     Running(Renderer),
 }
 
-pub struct App {
+pub struct App<'a> {
     state: AppState,
+    thread_handles: &'a Vec<SimulationThreadHandle>,
 }
 
-impl App {
-    pub fn new() -> Self {
+impl<'a> App<'a> {
+    pub fn new(thread_handles: &'a Vec<SimulationThreadHandle>) -> Self {
         App {
             state: AppState::Uninitialized,
+            thread_handles,
         }
     }
 }
 
-impl ApplicationHandler for App {
+impl<'a> ApplicationHandler for App<'a> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if let AppState::Uninitialized = self.state {
             self.state = AppState::Loading;
@@ -146,7 +150,7 @@ impl ApplicationHandler for App {
                     .texture
                     .create_view(&wgpu::TextureViewDescriptor::default());
 
-                renderer.render(&view);
+                renderer.render(&view, self.thread_handles);
 
                 renderer.gpu.window.pre_present_notify();
                 renderer.gpu.queue.present(frame);

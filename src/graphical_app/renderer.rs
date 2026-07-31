@@ -1,8 +1,5 @@
-use std::array;
 use std::time::Instant;
 
-use glam::Vec3;
-use rand::random_range;
 use wgpu::util::DeviceExt;
 use winit::keyboard::KeyCode;
 
@@ -11,6 +8,7 @@ use crate::graphical_app::mesh::{Mesh, MeshId, unit_cube, unit_cylinder, unit_sp
 use crate::graphical_app::pipeline::{DEPTH_FORMAT, SimplePipelineManager};
 use crate::graphical_app::scene::Scene;
 use crate::graphical_app::wgpu_state::WgpuState;
+use crate::simulation_running::threading::SimulationThreadHandle;
 
 /// Owns everything needed to simulate and draw the world: the GPU core, the
 /// render pipeline, the camera, the depth buffer, the mesh library, and the scene.
@@ -76,7 +74,7 @@ impl Renderer {
         let (cyv, cyi) = unit_cylinder(24);
         meshes[MeshId::Cylinder as usize] = Some(Mesh::new(&gpu.device, "Cylinder", &cyv, &cyi));
 
-        let scene = build_demo_scene();
+        let scene = Scene::demo_scene();
 
         Self {
             gpu,
@@ -130,7 +128,7 @@ impl Renderer {
     }
 
     /// Draw the current scene into the given swapchain view.
-    pub fn render(&self, view: &wgpu::TextureView) {
+    pub fn render(&self, view: &wgpu::TextureView, thread_handles: &Vec<SimulationThreadHandle>) {
         // Build one instance buffer per mesh type from the current body poses.
         let mut draws: Vec<(&Mesh, wgpu::Buffer, u32)> = Vec::new();
         for mesh_id in MeshId::all_mesh_ids() {
@@ -221,89 +219,4 @@ fn create_depth_view(
         view_formats: &[],
     });
     texture.create_view(&wgpu::TextureViewDescriptor::default())
-}
-
-/// A small starter world: a ground plane (fixed box) plus a few dynamic bodies
-/// that fall and settle. Replace/extend this as the creature body takes shape.
-fn build_demo_scene() -> Scene {
-    let mut scene = Scene::new();
-
-    let box_edge = 100.0;
-    let box_thickness = 1.0;
-
-    scene.spawn_fixed_box(
-        Vec3::new(box_edge, 0.0, 0.0),
-        Vec3::new(box_thickness, box_edge, box_edge),
-        Vec3::new(0.35, 0.37, 0.4),
-    );
-
-    scene.spawn_fixed_box(
-        Vec3::new(0.0, 0.0, box_edge),
-        Vec3::new(box_edge, box_edge, box_thickness),
-        Vec3::new(0.35, 0.37, 0.4),
-    );
-
-    scene.spawn_fixed_box(
-        Vec3::new(-box_edge, 0.0, 0.0),
-        Vec3::new(box_thickness, box_edge, box_edge),
-        Vec3::new(0.35, 0.37, 0.4),
-    );
-
-    scene.spawn_fixed_box(
-        Vec3::new(0.0, 0.0, -box_edge),
-        Vec3::new(box_edge, box_edge, box_thickness),
-        Vec3::new(0.35, 0.37, 0.4),
-    );
-
-    scene.spawn_fixed_box(
-        Vec3::new(0.0, -box_edge, 0.0),
-        Vec3::new(box_edge, box_thickness, box_edge),
-        Vec3::new(0.35, 0.37, 0.4),
-    );
-
-    scene.spawn_fixed_box(
-        Vec3::new(-5.0, 0.5, 0.0),
-        Vec3::new(2.0, 1.0, 2.0),
-        Vec3::new(0.3, 0.45, 0.5),
-    );
-
-    // Dynamic bodies (future creature parts) dropped from a height.
-    scene.spawn_dynamic_box(
-        Vec3::new(0.0, 6.0, 0.0),
-        Vec3::new(0.5, 0.5, 0.5),
-        Vec3::new(0.85, 0.4, 0.35),
-    );
-    scene.spawn_dynamic_box(
-        Vec3::new(0.4, 9.0, 0.2),
-        Vec3::new(0.5, 0.25, 0.75),
-        Vec3::new(0.4, 0.75, 0.5),
-    );
-
-    scene.spawn_dynamic_cylinder(
-        Vec3::new(0.4, 9.0, 0.2),
-        1.0,
-        5.0,
-        Vec3::new(0.6, 0.25, 0.3),
-    );
-
-    for i in 0..700 {
-        let random_pos = Vec3::from_array(array::from_fn(|_| random_range(-box_edge..box_edge)));
-        let random_color = Vec3::from_array(array::from_fn(|_| random_range(0.0..1.0)));
-
-        scene.spawn_dynamic_ball(random_pos, random_color.z * 5.0, random_color);
-    }
-
-    for i in 0..700 {
-        let random_pos = Vec3::from_array(array::from_fn(|_| random_range(-box_edge..box_edge)));
-        let random_color = Vec3::from_array(array::from_fn(|_| random_range(0.0..1.0)));
-
-        scene.spawn_dynamic_cylinder(
-            random_pos,
-            random_color.x * 5.0,
-            random_color.y * 8.0,
-            random_color,
-        );
-    }
-
-    scene
 }

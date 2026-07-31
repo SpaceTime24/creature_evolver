@@ -1,5 +1,7 @@
 use std::path::Iter;
 
+use glam::Vec3;
+use rapier3d::geometry::{ShapeType, SharedShape};
 use wgpu::util::DeviceExt;
 
 /// A single mesh vertex: position plus a normal for lighting.
@@ -60,6 +62,8 @@ pub enum MeshId {
     Cylinder,
 
     MeshCount,
+
+    NotSupported,
 }
 
 impl MeshId {
@@ -67,6 +71,35 @@ impl MeshId {
         MeshIdIter {
             cur_id: unsafe { std::mem::transmute(0u8) },
         }
+    }
+}
+
+impl TryFrom<ShapeType> for MeshId {
+    type Error = ();
+    fn try_from(value: ShapeType) -> std::result::Result<MeshId, ()> {
+        Ok(match value {
+            ShapeType::Ball => MeshId::Sphere,
+            ShapeType::Cuboid => MeshId::Cube,
+            ShapeType::Cylinder => MeshId::Cylinder,
+            _ => return Err(()),
+        })
+    }
+}
+
+pub fn scale_from_shape(shape: &SharedShape) -> Result<Vec3, ()> {
+    match shape.shape_type() {
+        rapier3d::geometry::ShapeType::Ball => {
+            let radius = shape.as_ball().unwrap().radius;
+            Ok(Vec3::new(radius, radius, radius))
+        }
+        rapier3d::geometry::ShapeType::Cuboid => Ok(shape.as_cuboid().unwrap().half_extents),
+        rapier3d::geometry::ShapeType::Cylinder => {
+            let cylinder = shape.as_cylinder().unwrap();
+            let half_height = cylinder.half_height;
+            let radius = cylinder.radius;
+            Ok(Vec3::new(radius, half_height, radius))
+        }
+        _ => return Err(()),
     }
 }
 

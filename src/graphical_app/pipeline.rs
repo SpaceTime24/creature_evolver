@@ -18,7 +18,7 @@ impl SimplePipelineManager {
     pub fn new(device: &Device, surface_format: wgpu::TextureFormat) -> SimplePipelineManager {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Base Shader"),
-            source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("../shader.wgsl"))),
+            source: wgpu::ShaderSource::Wgsl(Cow::Borrowed(include_str!("shader.wgsl"))),
         });
 
         // Group 0, binding 0: the camera view-projection uniform, visible to both

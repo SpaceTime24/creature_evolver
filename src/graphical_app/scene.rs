@@ -1,7 +1,10 @@
+use std::{array, todo};
+
 use glam::{Mat4, Vec3};
+use rand::random_range;
 use rapier3d::prelude::*;
 
-use crate::graphical_app::mesh::MeshId;
+use crate::{creature_environment::creature::Creature, graphical_app::mesh::MeshId};
 
 /// Per-instance data uploaded to the GPU: a full model matrix plus a color.
 /// One of these is produced for every scene object each frame.
@@ -131,5 +134,108 @@ impl Scene {
                 }
             })
             .collect()
+    }
+
+    /// A small starter world: a ground plane (fixed box) plus a few dynamic bodies
+    /// that fall and settle. Replace/extend this as the creature body takes shape.
+    pub fn demo_scene() -> Scene {
+        let mut scene = Scene::new();
+
+        let box_edge = 100.0;
+        let box_thickness = 1.0;
+
+        scene.spawn_fixed_box(
+            Vec3::new(box_edge, 0.0, 0.0),
+            Vec3::new(box_thickness, box_edge, box_edge),
+            Vec3::new(0.8, 0.2, 0.2),
+        );
+
+        scene.spawn_fixed_box(
+            Vec3::new(0.0, 0.0, box_edge),
+            Vec3::new(box_edge, box_edge, box_thickness),
+            Vec3::new(0.2, 0.2, 0.8),
+        );
+
+        scene.spawn_fixed_box(
+            Vec3::new(-box_edge, 0.0, 0.0),
+            Vec3::new(box_thickness, box_edge, box_edge),
+            Vec3::new(0.35, 0.37, 0.4),
+        );
+
+        scene.spawn_fixed_box(
+            Vec3::new(0.0, 0.0, -box_edge),
+            Vec3::new(box_edge, box_edge, box_thickness),
+            Vec3::new(0.35, 0.37, 0.4),
+        );
+
+        scene.spawn_fixed_box(
+            Vec3::new(0.0, -box_edge, 0.0),
+            Vec3::new(box_edge, box_thickness, box_edge),
+            Vec3::new(0.35, 0.37, 0.4),
+        );
+
+        scene.spawn_fixed_box(
+            Vec3::new(-5.0, 0.5, 0.0),
+            Vec3::new(2.0, 1.0, 2.0),
+            Vec3::new(0.3, 0.45, 0.5),
+        );
+
+        // Dynamic bodies (future creature parts) dropped from a height.
+        scene.spawn_dynamic_box(
+            Vec3::new(0.0, 6.0, 0.0),
+            Vec3::new(0.5, 0.5, 0.5),
+            Vec3::new(0.85, 0.4, 0.35),
+        );
+        scene.spawn_dynamic_box(
+            Vec3::new(0.4, 9.0, 0.2),
+            Vec3::new(0.5, 0.25, 0.75),
+            Vec3::new(0.4, 0.75, 0.5),
+        );
+
+        scene.spawn_dynamic_cylinder(
+            Vec3::new(0.4, 9.0, 0.2),
+            1.0,
+            5.0,
+            Vec3::new(0.6, 0.25, 0.3),
+        );
+
+        for i in 0..70 {
+            let random_pos =
+                Vec3::from_array(array::from_fn(|_| random_range(-box_edge..box_edge)));
+            let random_color = Vec3::from_array(array::from_fn(|_| random_range(0.0..1.0)));
+
+            scene.spawn_dynamic_ball(random_pos, random_color.z * 5.0, random_color);
+        }
+
+        for i in 0..70 {
+            let random_pos =
+                Vec3::from_array(array::from_fn(|_| random_range(-box_edge..box_edge)));
+            let random_color = Vec3::from_array(array::from_fn(|_| random_range(0.0..1.0)));
+
+            scene.spawn_dynamic_cylinder(
+                random_pos,
+                random_color.x * 5.0,
+                random_color.y * 8.0,
+                random_color,
+            );
+        }
+
+        for i in 0..70 {
+            let random_pos =
+                Vec3::from_array(array::from_fn(|_| random_range(-box_edge..box_edge)));
+            let random_color = Vec3::from_array(array::from_fn(|_| random_range(0.0..1.0)));
+
+            scene.spawn_dynamic_box(
+                random_pos,
+                Vec3::new(
+                    random_color.x * 5.0,
+                    random_color.y * 5.0,
+                    random_color.z * 5.0,
+                ),
+                random_color,
+            );
+        }
+
+        scene
     }
 }

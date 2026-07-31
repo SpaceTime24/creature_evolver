@@ -13,3 +13,4 @@ rapier3d = "0.34.0"
 glam = "0.33"
 bytemuck = { version = "1", features = ["derive"] }
 rand = "0.10.2"
+crossbeam = "0.8.4"
