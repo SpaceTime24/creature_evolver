@@ -5,9 +5,10 @@ pub mod simulation_running;
 
 use std::sync::{Arc, RwLock};
 use std::time::Duration;
-use std::{thread, vec};
+use std::{array, thread, vec};
 
 use glam::{Vec3, vec3};
+use rand::random_range;
 use rapier3d::geometry::{Collider, ColliderBuilder, ColliderSet};
 use rapier3d::pipeline::PhysicsWorld;
 use winit::event_loop::{self, EventLoop, EventLoopBuilder};
@@ -35,7 +36,7 @@ fn make_event_loop_and_run(party: Arc<RwLock<CreatureParty>>) {
 }
 
 fn creature_generator<'a>(physics_world: &'a mut PhysicsWorld) -> Creature<'a> {
-    Creature::sample_creature(physics_world, Vec3::ZERO)
+    Creature::single_obj_creature(physics_world, Vec3::ZERO)
 }
 
 fn simple_world() -> Vec<(Collider, Vec3)> {
@@ -77,9 +78,13 @@ fn main() {
         do_render_app(party_clone);
     });
 
-    for thread in locked_party.write().unwrap().thread_handles() {
-        thread.make_renderable();
-    }
+    locked_party
+        .write()
+        .unwrap()
+        .thread_handles()
+        .get_mut(0)
+        .unwrap()
+        .make_renderable();
 
     thread::sleep(Duration::from_secs(5000));
 

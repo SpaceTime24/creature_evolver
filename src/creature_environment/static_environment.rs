@@ -10,8 +10,8 @@ use rapier3d::{
 use crate::{
     creature_environment::{creature::Creature, creature_world::CreatureWorld},
     graphical_app::{
+        mesh::InstanceRaw,
         mesh::{MeshId, instance_from_collider},
-        scene::InstanceRaw,
     },
     neural_net::neural_placeholder::NeuralPlaceholder,
     simulation_running::threading::SimulationThreadHandle,

@@ -19,8 +19,8 @@ use rapier3d::{
 
 use crate::{
     graphical_app::{
+        mesh::InstanceRaw,
         mesh::{MeshId, instance_from_collider, scale_from_shape},
-        scene::InstanceRaw,
     },
     neural_net::{self, neural_placeholder::NeuralPlaceholder},
 };
@@ -132,14 +132,39 @@ impl<'world_life> Creature<'world_life> {
         self.neural_net = Some(neural_net)
     }
 
-    pub fn sample_creature<'a, 'b>(
-        physics_world: &'a mut PhysicsWorld,
+    pub fn single_obj_creature(
+        physics_world: &'world_life mut PhysicsWorld,
         position: Vec3,
-    ) -> Creature<'b>
-    where
-        'a: 'b,
-    {
-        let base_body = RigidBodyBuilder::dynamic().translation(position);
+    ) -> Creature<'world_life> {
+        let base_body = RigidBodyBuilder::dynamic()
+            .translation(position)
+            .rotation(Vec3::new(0.5, 0.2, 0.3))
+            .additional_mass(0.0);
+        let torso_collider = ColliderBuilder::cylinder(1.0, 0.1).translation(position);
+        let (base_body_handle, _) = physics_world.insert(base_body, torso_collider);
+
+        let mut body_link = CreatureBodyLink::new(
+            base_body_handle,
+            String::from("torso_and_head"),
+            Vec3::new(0.7, 0.2, 0.2),
+        );
+
+        let new_creature = Creature {
+            base: body_link,
+            world: physics_world,
+            neural_net: None,
+        };
+
+        new_creature
+    }
+
+    pub fn sample_creature(
+        physics_world: &'world_life mut PhysicsWorld,
+        position: Vec3,
+    ) -> Creature<'world_life> {
+        let base_body = RigidBodyBuilder::dynamic()
+            .translation(position)
+            .additional_mass(0.0);
         let torso_collider =
             ColliderBuilder::cylinder(3.0, 2.25).rotation(Vec3::new(0.0, 0.0, PI * 0.5));
         let head_collider = ColliderBuilder::ball(1.25).translation(Vec3::new(2.0, 0.5, 0.0));
@@ -177,12 +202,12 @@ impl<'world_life> Creature<'world_life> {
             true,
         );
 
-        let joint = physics_world
-            .impulse_joints
-            .get_mut(hip_joint_handle, true)
-            .unwrap()
-            .data
-            .set_motor_velocity(rapier3d::dynamics::JointAxis::AngY, 1.0, 0.5);
+        // let joint = physics_world
+        //     .impulse_joints
+        //     .get_mut(hip_joint_handle, true)
+        //     .unwrap()
+        //     .data
+        //     .set_motor_velocity(rapier3d::dynamics::JointAxis::AngY, 1.0, 0.5);
 
         body_link.add_child_link(femur_link, hip_joint_handle);
 

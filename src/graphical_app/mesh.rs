@@ -4,8 +4,6 @@ use glam::{Mat4, Vec3};
 use rapier3d::geometry::{Collider, ShapeType, SharedShape};
 use wgpu::util::DeviceExt;
 
-use crate::graphical_app::scene::InstanceRaw;
-
 /// A single mesh vertex: position plus a normal for lighting.
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
@@ -20,6 +18,32 @@ impl Vertex {
         array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
         step_mode: wgpu::VertexStepMode::Vertex,
         attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
+    };
+}
+
+/// Per-instance data uploaded to the GPU: a full model matrix plus a color.
+/// One of these is produced for every scene object each frame.
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct InstanceRaw {
+    pub model: [[f32; 4]; 4],
+    pub color: [f32; 4],
+}
+
+impl InstanceRaw {
+    /// Instance buffer layout. Uses shader locations 2..=6 so it does not collide
+    /// with the per-vertex attributes (locations 0 and 1). A `mat4x4` is passed
+    /// as four consecutive `vec4` slots.
+    pub const LAYOUT: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout {
+        array_stride: std::mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
+        step_mode: wgpu::VertexStepMode::Instance,
+        attributes: &wgpu::vertex_attr_array![
+            2 => Float32x4,
+            3 => Float32x4,
+            4 => Float32x4,
+            5 => Float32x4,
+            6 => Float32x4,
+        ],
     };
 }
 
@@ -99,7 +123,7 @@ pub fn scale_from_shape(shape: &SharedShape) -> Result<Vec3, ()> {
             let cylinder = shape.as_cylinder().unwrap();
             let half_height = cylinder.half_height;
             let radius = cylinder.radius;
-            Ok(Vec3::new(radius, half_height, radius))
+            Ok(Vec3::new(radius, half_height * 2.0, radius))
         }
         _ => return Err(()),
     }

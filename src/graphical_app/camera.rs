@@ -100,7 +100,7 @@ impl CameraController {
             pressed: HashSet::new(),
             mouse_delta: (0.0, 0.0),
             looking: false,
-            move_speed: 30.0,
+            move_speed: 10.0,
             look_sensitivity: 0.0025,
         }
     }

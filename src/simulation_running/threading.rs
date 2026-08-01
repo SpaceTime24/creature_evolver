@@ -16,10 +16,10 @@ use crate::{
         creature::{Creature, CreatureGenerator},
         creature_world::CreatureWorld,
     },
-    graphical_app::{mesh::MeshId, scene::InstanceRaw},
+    graphical_app::{mesh::InstanceRaw, mesh::MeshId},
 };
 
-const THREAD_PUBLISH_AHEAD: u8 = 4;
+const THREAD_PUBLISH_AHEAD: u8 = 2;
 
 #[derive(Clone, Copy)]
 enum ThreadCommand {
@@ -165,7 +165,7 @@ impl SimulationThread {
                 ThreadState::Paused => {}
                 ThreadState::SimulationComplete => {}
             }
-            thread::sleep(time::Duration::from_millis(10));
+            thread::sleep(time::Duration::from_millis(100));
         }
         println!("Simulation thread end");
     }

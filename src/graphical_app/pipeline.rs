@@ -2,8 +2,8 @@ use std::borrow::Cow;
 
 use wgpu::Device;
 
+use crate::graphical_app::mesh::InstanceRaw;
 use crate::graphical_app::mesh::Vertex;
-use crate::graphical_app::scene::InstanceRaw;
 
 /// Depth buffer format used by the pipeline and the depth texture.
 pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;

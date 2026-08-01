@@ -6,9 +6,9 @@ use winit::keyboard::KeyCode;
 
 use crate::creature_environment::static_environment::CreatureParty;
 use crate::graphical_app::camera::{Camera, CameraController, CameraUniform};
+use crate::graphical_app::mesh::InstanceRaw;
 use crate::graphical_app::mesh::{Mesh, MeshId, unit_cube, unit_cylinder, unit_sphere};
 use crate::graphical_app::pipeline::{DEPTH_FORMAT, SimplePipelineManager};
-use crate::graphical_app::scene::{InstanceRaw, Scene};
 use crate::graphical_app::wgpu_state::WgpuState;
 use crate::simulation_running::threading::SimulationThreadHandle;
 
@@ -26,7 +26,6 @@ pub struct Renderer {
     depth_view: wgpu::TextureView,
 
     meshes: Vec<Option<Mesh>>,
-    scene: Scene,
 
     last_frame: Instant,
 }
@@ -76,8 +75,6 @@ impl Renderer {
         let (cyv, cyi) = unit_cylinder(24);
         meshes[MeshId::Cylinder as usize] = Some(Mesh::new(&gpu.device, "Cylinder", &cyv, &cyi));
 
-        let scene = Scene::demo_scene();
-
         Self {
             gpu,
             pipeline_manager,
@@ -87,7 +84,6 @@ impl Renderer {
             camera_bind_group,
             depth_view,
             meshes,
-            scene,
             last_frame: Instant::now(),
         }
     }
@@ -119,7 +115,6 @@ impl Renderer {
         self.last_frame = now;
 
         self.controller.update_camera(&mut self.camera, dt);
-        self.scene.step();
 
         let camera_uniform = CameraUniform::from_camera(&self.camera);
         self.gpu.queue.write_buffer(
