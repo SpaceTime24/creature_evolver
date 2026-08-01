@@ -1,9 +1,16 @@
 [package]
-name = "procedural"
+name = "creature_simulator"
 version = "0.1.0"
 edition = "2024"
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "creature_simulator"
+crate-type = ["cdylib"]
+
 [dependencies]
+pyo3 = { version = "0.29.0", features = ["experimental-inspect"] }
+
 wgpu = "30.0.0"
 winit = "0.30.13"
 env_logger = "0.11.11"
