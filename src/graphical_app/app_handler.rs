@@ -1,4 +1,7 @@
-use std::println;
+use std::{
+    println,
+    sync::{Arc, RwLock},
+};
 
 use wgpu::CurrentSurfaceTexture;
 use winit::{
@@ -9,7 +12,9 @@ use winit::{
     window::CursorGrabMode,
 };
 
-use crate::graphical_app::wgpu_state::WgpuState;
+use crate::{
+    creature_environment::static_environment::CreatureParty, graphical_app::wgpu_state::WgpuState,
+};
 use crate::{
     graphical_app::renderer::Renderer, simulation_running::threading::SimulationThreadHandle,
 };
@@ -20,21 +25,21 @@ enum AppState {
     Running(Renderer),
 }
 
-pub struct App<'a> {
+pub struct App {
     state: AppState,
-    thread_handles: &'a mut Vec<SimulationThreadHandle>,
+    creature_party: Arc<RwLock<CreatureParty>>,
 }
 
-impl<'a> App<'a> {
-    pub fn new(thread_handles: &'a mut Vec<SimulationThreadHandle>) -> Self {
+impl App {
+    pub fn new(party: Arc<RwLock<CreatureParty>>) -> Self {
         App {
             state: AppState::Uninitialized,
-            thread_handles,
+            creature_party: party,
         }
     }
 }
 
-impl<'a> ApplicationHandler for App<'a> {
+impl ApplicationHandler for App {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if let AppState::Uninitialized = self.state {
             self.state = AppState::Loading;
@@ -150,7 +155,7 @@ impl<'a> ApplicationHandler for App<'a> {
                     .texture
                     .create_view(&wgpu::TextureViewDescriptor::default());
 
-                renderer.render(&view, self.thread_handles);
+                renderer.render(&view, &self.creature_party);
 
                 renderer.gpu.window.pre_present_notify();
                 renderer.gpu.queue.present(frame);

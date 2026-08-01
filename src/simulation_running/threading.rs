@@ -3,6 +3,7 @@ use std::{
     matches, println,
     sync::{Arc, OnceLock},
     thread::{self, JoinHandle},
+    time::Duration,
     todo,
 };
 
@@ -72,13 +73,22 @@ impl SimulationThreadHandle {
         }
     }
 
+    fn send_command(&self, command: ThreadCommand) {
+        while !matches!(self.command.load(), ThreadCommand::Received) {
+            thread::sleep(Duration::from_millis(1));
+        }
+        self.command.store(command);
+    }
+
     pub fn add_creature(&mut self, generator: fn(&mut PhysicsWorld) -> Creature) {
         self.creature_generator_passthrough.store(Some(generator));
+        self.send_command(ThreadCommand::AddCreature);
     }
 
     pub fn make_renderable(&mut self) {
         self.models_to_draw
             .get_or_init(|| ArrayQueue::new(THREAD_PUBLISH_AHEAD as usize));
+        println!("I'm Renderable now!");
     }
 
     pub fn activate(&mut self, creature_world: CreatureWorld) {
@@ -95,7 +105,7 @@ impl SimulationThreadHandle {
     }
 
     pub fn start_simulation(&self) {
-        self.command.store(ThreadCommand::Start);
+        self.send_command(ThreadCommand::Start);
     }
 
     pub fn deactivate(&mut self) {
@@ -109,7 +119,7 @@ impl SimulationThreadHandle {
 
 impl Drop for SimulationThreadHandle {
     fn drop(&mut self) {
-        self.command.store(ThreadCommand::Terminate);
+        self.deactivate();
     }
 }
 
@@ -143,7 +153,7 @@ impl SimulationThread {
                         .creature_generator_passthrough
                         .load()
                         .expect("No generator found when commanded to add crature");
-
+                    println!("Adding creature into my little thread world");
                     self.creature_world.add_creature(generator);
                 }
             }
@@ -155,7 +165,7 @@ impl SimulationThread {
                 ThreadState::Paused => {}
                 ThreadState::SimulationComplete => {}
             }
-            thread::sleep(time::Duration::from_millis(100));
+            thread::sleep(time::Duration::from_millis(10));
         }
         println!("Simulation thread end");
     }

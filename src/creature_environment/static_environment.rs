@@ -54,6 +54,10 @@ impl StaticEnvironment {
         }
     }
 
+    pub fn get_mesh_instances(&self) -> &Vec<(MeshId, Vec<InstanceRaw>)> {
+        &self.instances_to_render
+    }
+
     pub fn add_environment_to_creature_world(&self, creature_world: &mut CreatureWorld) {
         let world_rigid_body_builder = RigidBodyBuilder::fixed();
         let world_rigid_handle = creature_world.physics.insert_body(world_rigid_body_builder);
@@ -68,7 +72,7 @@ impl StaticEnvironment {
 
 pub struct CreatureParty {
     simulation_threads: Vec<SimulationThreadHandle>,
-    static_environment: StaticEnvironment,
+    pub static_environment: StaticEnvironment,
 }
 
 impl CreatureParty {
@@ -79,17 +83,19 @@ impl CreatureParty {
         }
     }
 
+    pub fn thread_handles(&mut self) -> &mut Vec<SimulationThreadHandle> {
+        &mut self.simulation_threads
+    }
+
     pub fn simulation_count(&self) -> usize {
         return self.simulation_threads.len();
     }
 
-    pub fn run_generation_of_creatures<F>(
+    pub fn run_generation_of_creatures(
         &mut self,
         creature_generator: for<'a> fn(&'a mut PhysicsWorld) -> Creature<'a>,
-        neural_networks: impl Iterator<Item = NeuralPlaceholder>,
-    ) where
-        F: for<'a> FnMut(&'a mut PhysicsWorld) -> Creature<'a>,
-    {
+        neural_networks: impl IntoIterator<Item = NeuralPlaceholder>,
+    ) {
         let mut world_idx = 0;
 
         for neural_net in neural_networks {
@@ -98,6 +104,8 @@ impl CreatureParty {
             }
             let thread_handle = self.simulation_threads.get_mut(world_idx).unwrap();
             thread_handle.add_creature(creature_generator);
+            thread_handle.start_simulation();
+            world_idx += 1;
         }
     }
 
