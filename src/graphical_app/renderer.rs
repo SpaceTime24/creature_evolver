@@ -128,7 +128,11 @@ impl Renderer {
     }
 
     /// Draw the current scene into the given swapchain view.
-    pub fn render(&self, view: &wgpu::TextureView, thread_handles: &Vec<SimulationThreadHandle>) {
+    pub fn render(
+        &self,
+        view: &wgpu::TextureView,
+        thread_handles: &mut Vec<SimulationThreadHandle>,
+    ) {
         let mut instance_holders: [Vec<InstanceRaw>; MeshId::MeshCount as usize] =
             [const { Vec::new() }; MeshId::MeshCount as usize];
 
@@ -137,11 +141,11 @@ impl Renderer {
         for thread_handle in thread_handles {
             if let Some(mesh_instance_pairs) = thread_handle.get_new_instances() {
                 for (mesh_id, instances) in mesh_instance_pairs {
-                    if instance_holders[mesh_id as usize].is_empty() {
+                    if instance_holders[*mesh_id as usize].is_empty() {
                         mesh_type_count += 1;
                     }
                     for instance in instances {
-                        instance_holders[mesh_id as usize].push(instance);
+                        instance_holders[*mesh_id as usize].push(*instance);
                     }
                 }
             }

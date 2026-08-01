@@ -3,6 +3,7 @@ use std::{
     f32::consts::PI,
     iter::{Zip, zip},
     mem::MaybeUninit,
+    ops::{Deref, DerefMut},
     todo,
 };
 
@@ -16,16 +17,37 @@ use rapier3d::{
     pipeline::PhysicsWorld,
 };
 
-use crate::graphical_app::{
-    mesh::{MeshId, scale_from_shape},
-    scene::InstanceRaw,
+use crate::{
+    graphical_app::{
+        mesh::{MeshId, instance_from_collider, scale_from_shape},
+        scene::InstanceRaw,
+    },
+    neural_net::{self, neural_placeholder::NeuralPlaceholder},
 };
 
-//Creature local coordinates: +x front, +z right, +y up
+pub struct CreatureGenerator {
+    pub generator: dyn FnMut(&mut PhysicsWorld) -> Creature,
+}
 
+impl Deref for CreatureGenerator {
+    type Target = dyn FnMut(&mut PhysicsWorld) -> Creature;
+
+    fn deref(&self) -> &Self::Target {
+        &self.generator
+    }
+}
+
+impl DerefMut for CreatureGenerator {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.generator
+    }
+}
+
+//Creature local coordinates: +x front, +z right, +y up
 pub struct Creature<'world_life> {
     base: CreatureBodyLink,
     world: &'world_life PhysicsWorld,
+    neural_net: Option<NeuralPlaceholder>,
 }
 
 pub struct CreatureBodyLink {
@@ -86,18 +108,7 @@ impl<'world_life> Creature<'world_life> {
                 .colliders()
             {
                 let collider = self.world.colliders.get(*collider_handle).unwrap();
-                let shared_shape = collider.shared_shape();
-                if let Ok(mesh_id) = MeshId::try_from(shared_shape.shape_type()) {
-                    let scale = scale_from_shape(shared_shape).unwrap();
-                    let translation = collider.translation();
-                    let rotation = collider.rotation();
-
-                    let model = Mat4::from_scale_rotation_translation(scale, rotation, translation);
-
-                    let new_instance = InstanceRaw {
-                        model: model.to_cols_array_2d(),
-                        color: link_color.extend(1.0).to_array(),
-                    };
+                if let Ok((mesh_id, new_instance)) = instance_from_collider(collider, link_color) {
                     if instance_holders[mesh_id as usize].is_empty() {
                         mesh_type_count += 1;
                     }
@@ -115,6 +126,10 @@ impl<'world_life> Creature<'world_life> {
         }
 
         return out_vec;
+    }
+
+    pub fn add_brain(&mut self, neural_net: NeuralPlaceholder) {
+        self.neural_net = Some(neural_net)
     }
 
     pub fn sample_creature<'a, 'b>(
@@ -136,7 +151,7 @@ impl<'world_life> Creature<'world_life> {
             Vec3::new(0.7, 0.2, 0.2),
         );
 
-        let femur_length = 3.0;
+        let femur_length = 10.0;
         let fr_femur_base = RigidBodyBuilder::dynamic();
         let fr_femur_collider = ColliderBuilder::cylinder(femur_length * 0.5, 0.75)
             .rotation(Vec3::new(0.0, 0.0, PI * 0.5))
@@ -174,6 +189,7 @@ impl<'world_life> Creature<'world_life> {
         let new_creature = Creature {
             base: body_link,
             world: physics_world,
+            neural_net: None,
         };
 
         new_creature

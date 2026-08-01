@@ -1,8 +1,10 @@
-use std::path::Iter;
+use std::{path::Iter, todo};
 
-use glam::Vec3;
-use rapier3d::geometry::{ShapeType, SharedShape};
+use glam::{Mat4, Vec3};
+use rapier3d::geometry::{Collider, ShapeType, SharedShape};
 use wgpu::util::DeviceExt;
+
+use crate::graphical_app::scene::InstanceRaw;
 
 /// A single mesh vertex: position plus a normal for lighting.
 #[repr(C)]
@@ -100,6 +102,28 @@ pub fn scale_from_shape(shape: &SharedShape) -> Result<Vec3, ()> {
             Ok(Vec3::new(radius, half_height, radius))
         }
         _ => return Err(()),
+    }
+}
+
+pub fn instance_from_collider(
+    collider: &Collider,
+    color: Vec3,
+) -> Result<(MeshId, InstanceRaw), ()> {
+    let shared_shape = collider.shared_shape();
+    if let Ok(mesh_id) = MeshId::try_from(shared_shape.shape_type()) {
+        let scale = scale_from_shape(shared_shape).unwrap();
+        let translation = collider.translation();
+        let rotation = collider.rotation();
+
+        let model = Mat4::from_scale_rotation_translation(scale, rotation, translation);
+
+        let new_instance = InstanceRaw {
+            model: model.to_cols_array_2d(),
+            color: color.extend(1.0).to_array(),
+        };
+        Ok((mesh_id, new_instance))
+    } else {
+        Err(())
     }
 }
 

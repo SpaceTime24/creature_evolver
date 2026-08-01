@@ -46,6 +46,8 @@ impl CreatureWorld {
     where
         F: for<'a> FnMut(&'a mut PhysicsWorld) -> Creature<'a>,
     {
+        let old_creature = self.creature.take();
+        drop(old_creature);
         let ptr = &raw mut self.creature;
         let ptr = (ptr as usize) as *mut Option<Creature>;
         let new_creature = creature_generator(&mut self.physics);

@@ -22,11 +22,11 @@ enum AppState {
 
 pub struct App<'a> {
     state: AppState,
-    thread_handles: &'a Vec<SimulationThreadHandle>,
+    thread_handles: &'a mut Vec<SimulationThreadHandle>,
 }
 
 impl<'a> App<'a> {
-    pub fn new(thread_handles: &'a Vec<SimulationThreadHandle>) -> Self {
+    pub fn new(thread_handles: &'a mut Vec<SimulationThreadHandle>) -> Self {
         App {
             state: AppState::Uninitialized,
             thread_handles,

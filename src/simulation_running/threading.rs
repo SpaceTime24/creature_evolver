@@ -1,24 +1,41 @@
 use core::time;
 use std::{
-    println,
+    matches, println,
     sync::{Arc, OnceLock},
     thread::{self, JoinHandle},
     todo,
 };
 
 use crossbeam::{atomic::AtomicCell, queue::ArrayQueue};
+use rapier3d::pipeline::PhysicsWorld;
+use wgpu::naga::compact::KeepUnused::No;
 
 use crate::{
-    creature_environment::creature_world::CreatureWorld,
+    creature_environment::{
+        creature::{Creature, CreatureGenerator},
+        creature_world::CreatureWorld,
+    },
     graphical_app::{mesh::MeshId, scene::InstanceRaw},
 };
 
 const THREAD_PUBLISH_AHEAD: u8 = 4;
 
+#[derive(Clone, Copy)]
 enum ThreadCommand {
     NoCommand,
     Received,
+    Pause,
+    Start,
+    AddCreature,
     Terminate,
+}
+
+#[derive(Clone, Copy)]
+enum ThreadState {
+    Idle,
+    Simulating,
+    Paused,
+    SimulationComplete,
 }
 
 pub struct SimulationThreadHandle {
@@ -26,7 +43,10 @@ pub struct SimulationThreadHandle {
     // This is initialized only for renderable simulations.  The queue itself is
     // shared directly, so pushing and popping remain lock-free.
     models_to_draw: Arc<OnceLock<ArrayQueue<Vec<(MeshId, Vec<InstanceRaw>)>>>>,
+    last_drawn_models: Option<Vec<(MeshId, Vec<InstanceRaw>)>>,
     command: Arc<AtomicCell<ThreadCommand>>,
+    state: Arc<AtomicCell<ThreadState>>,
+    creature_generator_passthrough: Arc<AtomicCell<Option<fn(&mut PhysicsWorld) -> Creature>>>,
 }
 
 impl SimulationThreadHandle {
@@ -35,15 +55,25 @@ impl SimulationThreadHandle {
             join_handle: None,
             models_to_draw: Arc::new(OnceLock::new()),
             command: Arc::from(AtomicCell::from(ThreadCommand::NoCommand)),
+            state: Arc::from(AtomicCell::from(ThreadState::Idle)),
+            last_drawn_models: None,
+            creature_generator_passthrough: Arc::from(AtomicCell::from(None)),
         }
     }
 
-    pub fn get_new_instances(&self) -> Option<Vec<(MeshId, Vec<InstanceRaw>)>> {
+    pub fn get_new_instances(&mut self) -> Option<&Vec<(MeshId, Vec<InstanceRaw>)>> {
         if let Some(queue) = self.models_to_draw.get() {
-            queue.pop()
+            if let Some(new_instances) = queue.pop() {
+                self.last_drawn_models.replace(new_instances);
+            }
+            self.last_drawn_models.as_ref()
         } else {
             None
         }
+    }
+
+    pub fn add_creature(&mut self, generator: fn(&mut PhysicsWorld) -> Creature) {
+        self.creature_generator_passthrough.store(Some(generator));
     }
 
     pub fn make_renderable(&mut self) {
@@ -56,10 +86,16 @@ impl SimulationThreadHandle {
             creature_world,
             models_to_draw: Arc::clone(&self.models_to_draw),
             command: Arc::clone(&self.command),
+            state: Arc::clone(&self.state),
+            creature_generator_passthrough: Arc::clone(&self.creature_generator_passthrough),
         };
         self.join_handle = Some(thread::spawn(|| {
             thread.run();
         }));
+    }
+
+    pub fn start_simulation(&self) {
+        self.command.store(ThreadCommand::Start);
     }
 
     pub fn deactivate(&mut self) {
@@ -71,10 +107,18 @@ impl SimulationThreadHandle {
     }
 }
 
+impl Drop for SimulationThreadHandle {
+    fn drop(&mut self) {
+        self.command.store(ThreadCommand::Terminate);
+    }
+}
+
 struct SimulationThread {
     creature_world: CreatureWorld,
     models_to_draw: Arc<OnceLock<ArrayQueue<Vec<(MeshId, Vec<InstanceRaw>)>>>>,
     command: Arc<AtomicCell<ThreadCommand>>,
+    state: Arc<AtomicCell<ThreadState>>,
+    creature_generator_passthrough: Arc<AtomicCell<Option<fn(&mut PhysicsWorld) -> Creature>>>,
 }
 
 impl SimulationThread {
@@ -82,13 +126,38 @@ impl SimulationThread {
         loop {
             let command = self.command.swap(ThreadCommand::Received);
             match command {
-                ThreadCommand::NoCommand | ThreadCommand::Received => {
+                ThreadCommand::NoCommand | ThreadCommand::Received => {}
+                ThreadCommand::Terminate => break,
+                ThreadCommand::Pause => match self.state.load() {
+                    ThreadState::Simulating => self.state.store(ThreadState::Paused),
+                    ThreadState::Idle | ThreadState::SimulationComplete | ThreadState::Paused => {}
+                },
+                ThreadCommand::Start => match self.state.load() {
+                    ThreadState::Idle => self.state.store(ThreadState::Simulating), //Maybe reset?
+                    ThreadState::Simulating => {}
+                    ThreadState::Paused => self.state.store(ThreadState::Simulating),
+                    ThreadState::SimulationComplete => {} //Maybe reset?
+                },
+                ThreadCommand::AddCreature => {
+                    let generator = self
+                        .creature_generator_passthrough
+                        .load()
+                        .expect("No generator found when commanded to add crature");
+
+                    self.creature_world.add_creature(generator);
+                }
+            }
+            match self.state.load() {
+                ThreadState::Idle => {}
+                ThreadState::Simulating => {
                     self.update_creature_world();
                 }
-                ThreadCommand::Terminate => break,
+                ThreadState::Paused => {}
+                ThreadState::SimulationComplete => {}
             }
-            thread::sleep(time::Duration::from_millis(10));
+            thread::sleep(time::Duration::from_millis(100));
         }
+        println!("Simulation thread end");
     }
 
     fn update_creature_world(&mut self) {
