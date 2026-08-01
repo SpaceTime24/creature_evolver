@@ -20,6 +20,7 @@ mod creature_simulator {
         pipeline::PhysicsWorld,
     };
     use std::{
+        println,
         sync::{Arc, RwLock},
         thread,
         time::Duration,
@@ -101,7 +102,8 @@ mod creature_simulator {
             .unwrap()
             .make_renderable();
 
-        thread::sleep(Duration::from_secs(5));
+        //thread::sleep(Duration::from_secs(5));
+        println!("Main thread end");
 
         //do_render_app(party_clone);
     }
