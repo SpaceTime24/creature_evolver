@@ -1,53 +1,55 @@
-use core::time;
 use std::{
-    matches, println,
-    sync::{Arc, OnceLock},
+    sync::{
+        Arc, OnceLock,
+        atomic::{AtomicBool, Ordering},
+    },
     thread::{self, JoinHandle},
     time::Duration,
-    todo,
 };
 
-use crossbeam::{atomic::AtomicCell, queue::ArrayQueue};
-use rapier3d::pipeline::PhysicsWorld;
-use wgpu::naga::compact::KeepUnused::No;
+use crossbeam::{
+    channel::{Receiver, RecvTimeoutError, Sender},
+    queue::ArrayQueue,
+};
+use glam::Vec3;
 
 use crate::{
     creature_environment::{
-        creature::{Creature, CreatureGenerator},
+        blueprint::{CreatureBlueprint, FitnessSpec},
         creature_world::CreatureWorld,
+        static_environment::StaticEnvironment,
     },
-    graphical_app::{mesh::InstanceRaw, mesh::MeshId},
+    graphical_app::mesh::ModelFrame,
 };
 
-const THREAD_PUBLISH_AHEAD: u8 = 2;
+const THREAD_PUBLISH_AHEAD: usize = 2;
+const RENDER_STEP: Duration = Duration::from_millis(16);
 
-#[derive(Clone, Copy)]
-enum ThreadCommand {
-    NoCommand,
-    Received,
-    Pause,
-    Start,
-    AddCreature,
-    Terminate,
+pub struct SimConfig {
+    pub environment: Arc<StaticEnvironment>,
+    pub creature: CreatureBlueprint,
+    pub gravity: Vec3,
+    pub spawn: Vec3,
+    pub max_steps: u32,
+    pub fitness: FitnessSpec,
 }
 
-#[derive(Clone, Copy)]
-enum ThreadState {
-    Idle,
-    Simulating,
-    Paused,
-    SimulationComplete,
+pub struct SimJob {
+    pub index: usize,
+    pub genome: Vec<f32>,
+}
+
+/// The outcome of one evaluation.
+pub struct SimResult {
+    pub index: usize,
+    pub fitness: f32,
 }
 
 pub struct SimulationThreadHandle {
     join_handle: Option<JoinHandle<()>>,
-    // This is initialized only for renderable simulations.  The queue itself is
-    // shared directly, so pushing and popping remain lock-free.
-    models_to_draw: Arc<OnceLock<ArrayQueue<Vec<(MeshId, Vec<InstanceRaw>)>>>>,
-    last_drawn_models: Option<Vec<(MeshId, Vec<InstanceRaw>)>>,
-    command: Arc<AtomicCell<ThreadCommand>>,
-    state: Arc<AtomicCell<ThreadState>>,
-    creature_generator_passthrough: Arc<AtomicCell<Option<fn(&mut PhysicsWorld) -> Creature>>>,
+    /// Present only for a renderable worker
+    models_to_draw: Arc<OnceLock<ArrayQueue<ModelFrame>>>,
+    last_drawn_models: Option<ModelFrame>,
 }
 
 impl SimulationThreadHandle {
@@ -55,14 +57,11 @@ impl SimulationThreadHandle {
         SimulationThreadHandle {
             join_handle: None,
             models_to_draw: Arc::new(OnceLock::new()),
-            command: Arc::from(AtomicCell::from(ThreadCommand::NoCommand)),
-            state: Arc::from(AtomicCell::from(ThreadState::Idle)),
             last_drawn_models: None,
-            creature_generator_passthrough: Arc::from(AtomicCell::from(None)),
         }
     }
 
-    pub fn get_new_instances(&mut self) -> Option<&Vec<(MeshId, Vec<InstanceRaw>)>> {
+    pub fn get_new_instances(&mut self) -> Option<&ModelFrame> {
         if let Some(queue) = self.models_to_draw.get() {
             if let Some(new_instances) = queue.pop() {
                 self.last_drawn_models.replace(new_instances);
@@ -73,111 +72,137 @@ impl SimulationThreadHandle {
         }
     }
 
-    fn send_command(&self, command: ThreadCommand) {
-        while !matches!(self.command.load(), ThreadCommand::Received) {
-            thread::sleep(Duration::from_millis(1));
-        }
-        self.command.store(command);
-    }
-
-    pub fn add_creature(&mut self, generator: fn(&mut PhysicsWorld) -> Creature) {
-        self.creature_generator_passthrough.store(Some(generator));
-        self.send_command(ThreadCommand::AddCreature);
-    }
-
+    /// Mark this worker as one whose simulation is drawn on screen.
     pub fn make_renderable(&mut self) {
         self.models_to_draw
-            .get_or_init(|| ArrayQueue::new(THREAD_PUBLISH_AHEAD as usize));
-        println!("I'm Renderable now!");
+            .get_or_init(|| ArrayQueue::new(THREAD_PUBLISH_AHEAD));
     }
 
-    pub fn activate(&mut self, creature_world: CreatureWorld) {
-        let thread = SimulationThread {
-            creature_world,
-            models_to_draw: Arc::clone(&self.models_to_draw),
-            command: Arc::clone(&self.command),
-            state: Arc::clone(&self.state),
-            creature_generator_passthrough: Arc::clone(&self.creature_generator_passthrough),
-        };
-        self.join_handle = Some(thread::spawn(|| {
-            thread.run();
+    /// Start the worker loop, run until job sender disconnects or terminated
+    pub fn spawn(
+        &mut self,
+        config: Arc<SimConfig>,
+        jobs: Receiver<SimJob>,
+        results: Sender<SimResult>,
+        terminate: Arc<AtomicBool>,
+    ) {
+        let models_to_draw = Arc::clone(&self.models_to_draw);
+        self.join_handle = Some(thread::spawn(move || {
+            worker_loop(config, jobs, results, terminate, models_to_draw);
         }));
     }
 
-    pub fn start_simulation(&self) {
-        self.send_command(ThreadCommand::Start);
-    }
-
-    pub fn deactivate(&mut self) {
-        if let Some(join_handle) = self.join_handle.take() {
-            self.command.store(ThreadCommand::Terminate);
-            join_handle.join().unwrap();
-            println!("Terminated ")
+    pub fn join(&mut self) {
+        if let Some(handle) = self.join_handle.take() {
+            let _ = handle.join();
         }
     }
 }
 
-impl Drop for SimulationThreadHandle {
-    fn drop(&mut self) {
-        self.deactivate();
+fn worker_loop(
+    config: Arc<SimConfig>,
+    jobs: Receiver<SimJob>,
+    results: Sender<SimResult>,
+    terminate: Arc<AtomicBool>,
+    models_to_draw: Arc<OnceLock<ArrayQueue<ModelFrame>>>,
+) {
+    loop {
+        // Time out so that we can detect a terminate command.
+        let job = match jobs.recv_timeout(Duration::from_millis(50)) {
+            Ok(job) => job,
+            Err(RecvTimeoutError::Timeout) => {
+                if terminate.load(Ordering::Relaxed) {
+                    break;
+                }
+                continue;
+            }
+            Err(RecvTimeoutError::Disconnected) => break,
+        };
+
+        let fitness = run_evaluation(&config, &job, &models_to_draw, &terminate);
+        if results
+            .send(SimResult {
+                index: job.index,
+                fitness,
+            })
+            .is_err()
+        {
+            break;
+        }
     }
 }
 
-struct SimulationThread {
-    creature_world: CreatureWorld,
-    models_to_draw: Arc<OnceLock<ArrayQueue<Vec<(MeshId, Vec<InstanceRaw>)>>>>,
-    command: Arc<AtomicCell<ThreadCommand>>,
-    state: Arc<AtomicCell<ThreadState>>,
-    creature_generator_passthrough: Arc<AtomicCell<Option<fn(&mut PhysicsWorld) -> Creature>>>,
+/// Build a fresh world for one genome, simulate it, and return its fitness.
+fn run_evaluation(
+    config: &SimConfig,
+    job: &SimJob,
+    models_to_draw: &OnceLock<ArrayQueue<ModelFrame>>,
+    terminate: &AtomicBool,
+) -> f32 {
+    let mut world = CreatureWorld::new(config.gravity);
+    config.environment.populate(&mut world.physics);
+
+    if let Err(err) = world.add_creature(&config.creature, &job.genome, config.spawn) {
+        eprintln!("simulation: failed to build creature: {err}");
+        return f32::NEG_INFINITY;
+    }
+
+    let mut upright_sum = 0.0f32;
+    let mut clearance_sum = 0.0f32;
+    let mut samples = 0u32;
+
+    let renderable = models_to_draw.get();
+    for _ in 0..config.max_steps {
+        if terminate.load(Ordering::Relaxed) {
+            break;
+        }
+        world.step();
+
+        if let Some(creature) = &world.creature {
+            upright_sum += creature.torso_uprightness(&world.physics);
+            let clearance = creature.root_position(&world.physics).y - config.fitness.ground_height;
+            let clearance_factor = (clearance / config.fitness.target_clearance).clamp(0.0, 1.0);
+            clearance_sum += clearance_factor;
+            samples += 1;
+        }
+
+        if let Some(queue) = renderable {
+            if let Some(creature) = &world.creature {
+                if !queue.is_full() {
+                    let _ = queue.push(creature.get_raw_instances(&world.physics));
+                }
+            }
+            // Only the on-screen worker paces itself; headless workers run flat out.
+            thread::sleep(RENDER_STEP);
+        }
+    }
+
+    shaped_fitness(&world, config, upright_sum, clearance_sum, samples)
 }
 
-impl SimulationThread {
-    fn run(mut self) {
-        loop {
-            let command = self.command.swap(ThreadCommand::Received);
-            match command {
-                ThreadCommand::NoCommand | ThreadCommand::Received => {}
-                ThreadCommand::Terminate => break,
-                ThreadCommand::Pause => match self.state.load() {
-                    ThreadState::Simulating => self.state.store(ThreadState::Paused),
-                    ThreadState::Idle | ThreadState::SimulationComplete | ThreadState::Paused => {}
-                },
-                ThreadCommand::Start => match self.state.load() {
-                    ThreadState::Idle => self.state.store(ThreadState::Simulating), //Maybe reset?
-                    ThreadState::Simulating => {}
-                    ThreadState::Paused => self.state.store(ThreadState::Simulating),
-                    ThreadState::SimulationComplete => {} //Maybe reset?
-                },
-                ThreadCommand::AddCreature => {
-                    let generator = self
-                        .creature_generator_passthrough
-                        .load()
-                        .expect("No generator found when commanded to add crature");
-                    println!("Adding creature into my little thread world");
-                    self.creature_world.add_creature(generator);
-                }
-            }
-            match self.state.load() {
-                ThreadState::Idle => {}
-                ThreadState::Simulating => {
-                    self.update_creature_world();
-                }
-                ThreadState::Paused => {}
-                ThreadState::SimulationComplete => {}
-            }
-            thread::sleep(time::Duration::from_millis(100));
-        }
-        println!("Simulation thread end");
-    }
+fn shaped_fitness(
+    world: &CreatureWorld,
+    config: &SimConfig,
+    upright_sum: f32,
+    clearance_sum: f32,
+    samples: u32,
+) -> f32 {
+    let Some(creature) = &world.creature else {
+        return 0.0;
+    };
+    let f = &config.fitness;
 
-    fn update_creature_world(&mut self) {
-        self.creature_world.physics.step();
-        if let Some(model_queue) = self.models_to_draw.get() {
-            if !model_queue.is_full() {
-                if let Some(creature) = self.creature_world.creature.as_ref() {
-                    let _ = model_queue.push(creature.get_raw_instances());
-                }
-            }
-        }
-    }
+    let forward = creature.root_position(&world.physics).x - config.spawn.x;
+    let mean_upright = if samples > 0 {
+        upright_sum / samples as f32
+    } else {
+        0.0
+    };
+    let mean_clearance = if samples > 0 {
+        clearance_sum / samples as f32
+    } else {
+        0.0
+    };
+
+    f.forward_weight * forward + f.upright_weight * mean_upright + f.height_weight * mean_clearance
 }

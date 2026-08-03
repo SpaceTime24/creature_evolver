@@ -6,11 +6,10 @@ use winit::keyboard::KeyCode;
 
 use crate::creature_environment::static_environment::CreatureParty;
 use crate::graphical_app::camera::{Camera, CameraController, CameraUniform};
-use crate::graphical_app::mesh::InstanceRaw;
+use crate::graphical_app::mesh::{InstanceRaw, ModelFrame};
 use crate::graphical_app::mesh::{Mesh, MeshId, unit_cube, unit_cylinder, unit_sphere};
 use crate::graphical_app::pipeline::{DEPTH_FORMAT, SimplePipelineManager};
 use crate::graphical_app::wgpu_state::WgpuState;
-use crate::simulation_running::threading::SimulationThreadHandle;
 
 /// Owns everything needed to simulate and draw the world: the GPU core, the
 /// render pipeline, the camera, the depth buffer, the mesh library, and the scene.
@@ -125,7 +124,7 @@ impl Renderer {
     }
 
     fn add_mesh_raw_instances_to_instance_holders(
-        mesh_instance_pairs: &Vec<(MeshId, Vec<InstanceRaw>)>,
+        mesh_instance_pairs: &ModelFrame,
         instance_holders: &mut [Vec<InstanceRaw>; MeshId::MeshCount as usize],
         mesh_type_count: &mut usize,
     ) {

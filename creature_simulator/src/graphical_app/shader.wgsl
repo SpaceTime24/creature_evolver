@@ -39,12 +39,12 @@ fn vs_main(vert: VertexInput, inst: InstanceInput) -> VertexOutput {
     out.world_normal = normalize((model * vec4<f32>(vert.normal, 0.0)).xyz);
     out.world_position = world_position.xyz;
 
-    // let crazy_color = mat3x3(
-    //     -1, 0.5, 0.5,
-    //     0.5, -1, 0.5,
-    //     0.5, 0.5, -1
-    // ) * vert.normal;
-
+    let crazy_color = (mat3x3(
+        -1, 0.5, 0.5,
+        0.5, -1, 0.5,
+        0.5, 0.5, -1
+    ) * vert.normal + vec3(1.0, 1.0, 1.0)) * 0.5;
+    //out.color = crazy_color;
     out.color = inst.color.rgb;
 
     return out;
@@ -66,8 +66,6 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let diffuse = max(dot(n, light_dir), 0.0);
     let ambient = 0.25;
     let shade = ambient + diffuse * 0.8 + spec;
-
-    //let crazy_color = (in.color + vec3(1.0, 1.0, 1.0)) / 2;
 
     return vec4<f32>(in.color * shade, 1.0);
 }

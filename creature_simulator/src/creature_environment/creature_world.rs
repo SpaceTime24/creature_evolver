@@ -1,72 +1,50 @@
-use std::ops::{Deref, DerefMut};
-
+use glam::Vec3;
 use rapier3d::pipeline::PhysicsWorld;
 
-use crate::creature_environment::creature::Creature;
+use crate::{
+    creature_environment::{blueprint::CreatureBlueprint, creature::Creature},
+    neural_net::network::NeuralNet,
+};
 
-#[repr(transparent)]
 pub struct CreatureWorld {
-    inner: Box<CreatureWorldInner<'static>>,
-}
-
-pub struct CreatureWorldInner<'a> {
-    pub creature: Option<Creature<'a>>,
+    pub creature: Option<Creature>,
     pub physics: PhysicsWorld,
 }
 
 impl CreatureWorld {
-    pub fn new_unpopulated<F>(mut static_environment_generator: F) -> CreatureWorld
-    where
-        F: FnMut(&mut PhysicsWorld),
-    {
+    /// A fresh, empty world with the given gravity.
+    pub fn new(gravity: Vec3) -> CreatureWorld {
         let mut physics = PhysicsWorld::new();
-        {
-            static_environment_generator(&mut physics);
-        }
-        let inner: Box<CreatureWorldInner<'static>> = Box::new(CreatureWorldInner {
+        physics.gravity = gravity;
+        CreatureWorld {
             physics,
             creature: None,
-        });
-
-        CreatureWorld { inner }
-    }
-
-    pub fn new_empty() -> CreatureWorld {
-        let physics = PhysicsWorld::new();
-
-        let inner: Box<CreatureWorldInner<'static>> = Box::new(CreatureWorldInner {
-            physics,
-            creature: None,
-        });
-
-        CreatureWorld { inner }
-    }
-
-    pub fn add_creature<'b, F>(&mut self, mut creature_generator: F)
-    where
-        F: for<'a> FnMut(&'a mut PhysicsWorld) -> Creature<'a>,
-    {
-        let old_creature = self.creature.take();
-        drop(old_creature);
-        let ptr = &raw mut self.creature;
-        let ptr = (ptr as usize) as *mut Option<Creature>;
-        let new_creature = creature_generator(&mut self.physics);
-        unsafe {
-            ptr.write(Some(new_creature));
         }
     }
-}
 
-impl Deref for CreatureWorld {
-    type Target = CreatureWorldInner<'static>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.inner
+    pub fn add_creature(
+        &mut self,
+        blueprint: &CreatureBlueprint,
+        genome: &[f32],
+        spawn: Vec3,
+    ) -> Result<(), String> {
+        let mut creature = Creature::from_blueprint(blueprint, &mut self.physics, spawn);
+        let net = NeuralNet::from_genome(
+            genome,
+            creature.observation_size(),
+            blueprint.hidden_size,
+            creature.action_size(),
+        )?;
+        creature.add_brain(net);
+        self.creature = Some(creature);
+        Ok(())
     }
-}
 
-impl DerefMut for CreatureWorld {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.inner
+    /// Advance the simulation one tick: run the controller, then step physics.
+    pub fn step(&mut self) {
+        if let Some(creature) = &self.creature {
+            creature.control_step(&mut self.physics);
+        }
+        self.physics.step();
     }
 }

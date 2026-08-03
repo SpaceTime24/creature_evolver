@@ -1,1 +1,1 @@
-pub mod neural_placeholder;
+pub mod network;

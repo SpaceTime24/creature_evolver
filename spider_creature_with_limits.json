@@ -1,0 +1,502 @@
+{
+    "hidden_size": 16,
+    "links": [
+        {
+            "label": "torso",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        3,
+                        1,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fr_seg_1",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                2.0,
+                0.0,
+                3
+            ],
+            "colliders": [
+                {
+                    "shape": "cylinder",
+                    "half_height": 1.2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        1.2
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fr_seg_2",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                2.0,
+                0.0,
+                6.4
+            ],
+            "colliders": [
+                {
+                    "shape": "cylinder",
+                    "half_height": 2.1,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        2.1
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "br_seg_1",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                -2.0,
+                0.0,
+                3
+            ],
+            "colliders": [
+                {
+                    "shape": "cylinder",
+                    "half_height": 1.2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        1.2
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "br_seg_2",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                -2.0,
+                0.0,
+                6.4
+            ],
+            "colliders": [
+                {
+                    "shape": "cylinder",
+                    "half_height": 2.1,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        2.1
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fl_seg_1",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                2.0,
+                0.0,
+                -3
+            ],
+            "colliders": [
+                {
+                    "shape": "cylinder",
+                    "half_height": 1.2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -1.2
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fl_seg_2",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                2.0,
+                0.0,
+                -6.4
+            ],
+            "colliders": [
+                {
+                    "shape": "cylinder",
+                    "half_height": 2.1,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -2.1
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "bl_seg_1",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                -2.0,
+                0.0,
+                -3
+            ],
+            "colliders": [
+                {
+                    "shape": "cylinder",
+                    "half_height": 1.2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -1.2
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "bl_seg_2",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                -2.0,
+                0.0,
+                -6.4
+            ],
+            "colliders": [
+                {
+                    "shape": "cylinder",
+                    "half_height": 2.1,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -2.1
+                    ]
+                }
+            ]
+        }
+    ],
+    "joints": [
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 1,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                2.0,
+                0.0,
+                2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 2000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 1,
+            "child": 2,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                2.9
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 2000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        0,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 3,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                -2.0,
+                0.0,
+                2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 2000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 3,
+            "child": 4,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                2.9
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 2000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        0,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 5,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                2.0,
+                0.0,
+                -2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 2000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 5,
+            "child": 6,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                -2.9
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 2000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        -2,
+                        0
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 7,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                -2.0,
+                0.0,
+                -2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 2000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 7,
+            "child": 8,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                -2.9
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 2000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        -2,
+                        0
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -12,11 +12,9 @@ use winit::{
     window::CursorGrabMode,
 };
 
+use crate::graphical_app::renderer::Renderer;
 use crate::{
     creature_environment::static_environment::CreatureParty, graphical_app::wgpu_state::WgpuState,
-};
-use crate::{
-    graphical_app::renderer::Renderer, simulation_running::threading::SimulationThreadHandle,
 };
 
 enum AppState {

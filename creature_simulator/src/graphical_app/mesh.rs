@@ -1,5 +1,3 @@
-use std::{path::Iter, todo};
-
 use glam::{Mat4, Vec3};
 use rapier3d::geometry::{Collider, ShapeType, SharedShape};
 use wgpu::util::DeviceExt;
@@ -46,6 +44,8 @@ impl InstanceRaw {
         ],
     };
 }
+
+pub type ModelFrame = Vec<(MeshId, Vec<InstanceRaw>)>;
 
 /// GPU buffers for one drawable mesh.
 pub struct Mesh {
