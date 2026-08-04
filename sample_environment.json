@@ -7,8 +7,8 @@
   "fitness": {
     "forward_weight": 0.03,
     "upright_weight": 3.0,
-    "height_weight": 3.5,
-    "target_clearance": 1.5,
+    "height_weight": 5.5,
+    "target_clearance": 2.5,
     "ground_height": -0.5
   },
   "colliders": [

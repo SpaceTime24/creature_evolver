@@ -34,7 +34,7 @@ def main():
     parser.add_argument(
         "--max-steps",
         type=int,
-        default=900,
+        default=400,
         help="simulation steps per replay (default: 400, matching tester.py)",
     )
     args = parser.parse_args()

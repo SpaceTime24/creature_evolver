@@ -129,7 +129,7 @@ fn one() -> f32 {
 }
 
 fn default_motor_gain() -> f32 {
-    900.0
+    4000.0
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
