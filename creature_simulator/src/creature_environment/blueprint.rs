@@ -54,6 +54,7 @@ impl ColliderSpec {
             .builder()
             .translation(Vec3::from_array(self.translation))
             .rotation(Vec3::from_array(self.rotation))
+            .friction(1.0)
             .build()
     }
 }
