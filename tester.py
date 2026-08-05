@@ -16,15 +16,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-CREATURE_FILE = "spider_multi_leg_joint.json"
+CREATURE_FILE = "spider_multi_leg_joint_mid_limit.json"
 ENVIRONMENT_FILE = "sample_environment.json"
 
-POP_SIZE = 80
-GENERATIONS = 50
+POP_SIZE = 160
+GENERATIONS = 800
 TOP_PERFORMERS_TO_SAVE = 10
 TOP_PERFORMERS_FILE = Path("top_performers.json")
-TOURNAMENT_SIZE = 3
-CROSSOVER_RATE = 0.8
+TOURNAMENT_SIZE = 2
+CROSSOVER_RATE = 0.5
 
 
 @dataclass
@@ -35,7 +35,7 @@ class Individual:
     fitness: Optional[float] = None
 
 
-def mutate(genome, rng, rate=0.2, scale=0.3):
+def mutate(genome, rng, rate=0.2, scale=0.6):
     return [
         gene + rng.gauss(0.0, scale) if rng.random() < rate else gene
         for gene in genome
@@ -152,7 +152,7 @@ def main():
         CREATURE_FILE,
         ENVIRONMENT_FILE,
         workers=16,
-        max_steps=700,
+        max_steps=600,
     )
 
     print(f"genome_size      = {sim.genome_size}")

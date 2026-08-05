@@ -1,6 +1,6 @@
 use glam::Vec3;
 use rapier3d::{
-    dynamics::{JointAxis, RevoluteJointBuilder, SphericalJointBuilder},
+    dynamics::{JointAxis, RevoluteJointBuilder, SphericalJointBuilder, SpringCoefficients},
     geometry::{Collider, ColliderBuilder},
 };
 use serde::{Deserialize, Serialize};
@@ -158,7 +158,9 @@ impl JointSpec {
             JointKind::Revolute { axis } => {
                 let mut builder = RevoluteJointBuilder::new(Vec3::from_array(*axis))
                     .local_anchor1(anchor1)
-                    .local_anchor2(anchor2);
+                    .local_anchor2(anchor2)
+                    //.softness(SpringCoefficients::new(1.0e6, 10000.0))
+                    ;
                 //Revolute alway Use `ang_x`  to drive it.
                 for motor in &self.motors {
                     builder = builder.motor_max_force(motor.max_force);

@@ -1,4 +1,5 @@
 use std::{
+    ops::Neg,
     sync::{
         Arc, OnceLock,
         atomic::{AtomicBool, Ordering},
@@ -161,7 +162,9 @@ fn run_evaluation(
         if let Some(creature) = &world.creature {
             upright_sum += creature.torso_uprightness(&world.physics);
             let clearance = creature.root_position(&world.physics).y - config.fitness.ground_height;
-            let clearance_factor = (clearance / config.fitness.target_clearance).clamp(0.0, 1.0);
+            //let clearance_factor = (clearance / config.fitness.target_clearance).clamp(0.0, 1.0);
+            let clear_diff = (clearance - config.fitness.target_clearance).abs();
+            let clearance_factor = (clear_diff * clear_diff).neg();
             clearance_sum += clearance_factor;
             samples += 1;
         }

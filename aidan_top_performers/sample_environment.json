@@ -6,8 +6,8 @@
   ],
   "fitness": {
     "forward_weight": 0.04,
-    "upright_weight": 3.0,
-    "height_weight": 1.0,
+    "upright_weight": 1.0,
+    "height_weight": 0.3,
     "target_clearance": 3.5,
     "ground_height": -0.5
   },
