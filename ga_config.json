@@ -1,5 +1,5 @@
 {
-  "num_generations": 1500,
+  "num_generations": 10,
   "sol_per_pop": 160,
   "num_parents_mating": 100,
   "fitness_batch_size": 160,
@@ -11,8 +11,8 @@
   "crossover_type": "uniform",
   "crossover_probability": 0.8,
   "mutation_type": "random",
-  "mutation_percent_genes": 0.5,
-  "random_mutation_min_val": -0.5,
-  "random_mutation_max_val": 0.5,
-  "stop_criteria": "saturate_200"
+  "mutation_percent_genes": 5,
+  "random_mutation_min_val": -1,
+  "random_mutation_max_val": 1,
+  "stop_criteria": "saturate_100"
 }

@@ -99,6 +99,15 @@ def main():
     ga_instance.run()
     seconds_elapsed = time.perf_counter() - start_time
 
+    best_solution, best_fitness, _ = ga_instance.best_solution(
+        pop_fitness=ga_instance.last_generation_fitness
+    )
+
+    print("\n=========================\nResults:")
+    print("-------------------------")
+    print(f"Total run time: {seconds_elapsed:.2f}s ({seconds_elapsed / 60:.2f} min)")
+    print("Best genome:\n{!s}".format(best_solution))
+    print(f"Best fitness: {best_fitness:.3f}\n")
     save_top_performers(
         population=ga_instance.population,
         fitnesses=ga_instance.last_generation_fitness,
@@ -107,13 +116,7 @@ def main():
         path=TOP_PERFORMERS_FILE,
         genome_size=sim.genome_size,
     )
-
-    best_solution, best_fitness, _ = ga_instance.best_solution(
-        pop_fitness=ga_instance.last_generation_fitness
-    )
-    print("\nBest genome:\n{!s}".format(best_solution))
-
-    print(f"\nTotal run time: {seconds_elapsed:.2f}s ({seconds_elapsed / 60:.2f} min)")
+    print("=========================")
 
 
 if __name__ == "__main__":
