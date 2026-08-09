@@ -1,0 +1,18 @@
+{
+  "num_generations": 1500,
+  "sol_per_pop": 160,
+  "num_parents_mating": 100,
+  "fitness_batch_size": 160,
+  "keep_elitism": 5,
+  "init_range_low": -1,
+  "init_range_high": 1,
+  "parent_selection_type": "tournament",
+  "K_tournament": 2,
+  "crossover_type": "uniform",
+  "crossover_probability": 0.8,
+  "mutation_type": "random",
+  "mutation_percent_genes": 0.5,
+  "random_mutation_min_val": -0.5,
+  "random_mutation_max_val": 0.5,
+  "stop_criteria": "saturate_200"
+}
