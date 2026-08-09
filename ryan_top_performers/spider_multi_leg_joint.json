@@ -1,0 +1,1440 @@
+{
+    "hidden_size": 64,
+    "links": [
+        {
+            "label": "torso",
+            "color": [
+                0.70,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        6,
+                        1,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fr_seg_1",
+            "color": [
+                0.20,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                5.0,
+                0.0,
+                3
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        1
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fr_seg_2",
+            "color": [
+                0.20,
+                0.20,
+                0.70
+            ],
+            "translation": [
+                5.0,
+                0.0,
+                4
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0.75,
+                        0,
+                        2.5
+                    ]
+                },
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        -0.75,
+                        0,
+                        2.5
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fr_seg_3",
+            "color": [
+                0.10,
+                0.10,
+                0.10
+            ],
+            "translation": [
+                5,
+                0,
+                8
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                {
+                    "shape": "cylinder",
+                    "half_height": 2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        4
+                    ]
+                },
+                {
+                    "shape": "ball",
+                    "radius": 0.5,
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        6.4
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "br_seg_1",
+            "color": [
+                0.20,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                -5.0,
+                0.0,
+                3
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        1
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "br_seg_2",
+            "color": [
+                0.20,
+                0.20,
+                0.70
+            ],
+            "translation": [
+                -5.0,
+                0.0,
+                4
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0.75,
+                        0,
+                        2.5
+                    ]
+                },
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        -0.75,
+                        0,
+                        2.5
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "br_seg_3",
+            "color": [
+                0.10,
+                0.10,
+                0.10
+            ],
+            "translation": [
+                -5,
+                0,
+                8
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                {
+                    "shape": "cylinder",
+                    "half_height": 2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        4
+                    ]
+                },
+                {
+                    "shape": "ball",
+                    "radius": 0.5,
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        6.4
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "mr_seg_1",
+            "color": [
+                0.20,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                0.0,
+                0.0,
+                3
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        1
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "mr_seg_2",
+            "color": [
+                0.20,
+                0.20,
+                0.70
+            ],
+            "translation": [
+                0.0,
+                0.0,
+                4
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0.75,
+                        0,
+                        2.5
+                    ]
+                },
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        -0.75,
+                        0,
+                        2.5
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "mr_seg_3",
+            "color": [
+                0.10,
+                0.10,
+                0.10
+            ],
+            "translation": [
+                0,
+                0,
+                8
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        1
+                    ]
+                },
+                {
+                    "shape": "cylinder",
+                    "half_height": 2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        4
+                    ]
+                },
+                {
+                    "shape": "ball",
+                    "radius": 0.5,
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        6.4
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fl_seg_1",
+            "color": [
+                0.20,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                5.0,
+                0.0,
+                -3
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -1
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fl_seg_2",
+            "color": [
+                0.20,
+                0.20,
+                0.70
+            ],
+            "translation": [
+                5.0,
+                0.0,
+                -4
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0.75,
+                        0,
+                        -2.5
+                    ]
+                },
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        -0.75,
+                        0,
+                        -2.5
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "fl_seg_3",
+            "color": [
+                0.10,
+                0.10,
+                0.10
+            ],
+            "translation": [
+                5,
+                0,
+                -8
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -1
+                    ]
+                },
+                {
+                    "shape": "cylinder",
+                    "half_height": 2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -4
+                    ]
+                },
+                {
+                    "shape": "ball",
+                    "radius": 0.5,
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -6.4
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "bl_seg_1",
+            "color": [
+                0.20,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                -5.0,
+                0.0,
+                -3
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -1
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "bl_seg_2",
+            "color": [
+                0.20,
+                0.20,
+                0.70
+            ],
+            "translation": [
+                -5.0,
+                0.0,
+                -4
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0.75,
+                        0,
+                        -2.5
+                    ]
+                },
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        -0.75,
+                        0,
+                        -2.5
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "bl_seg_3",
+            "color": [
+                0.10,
+                0.10,
+                0.10
+            ],
+            "translation": [
+                -5,
+                0,
+                -8
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -1
+                    ]
+                },
+                {
+                    "shape": "cylinder",
+                    "half_height": 2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -4
+                    ]
+                },
+                {
+                    "shape": "ball",
+                    "radius": 0.5,
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -6.4
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "ml_seg_1",
+            "color": [
+                0.20,
+                0.20,
+                0.20
+            ],
+            "translation": [
+                0.0,
+                0.0,
+                -3
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -1
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "ml_seg_2",
+            "color": [
+                0.20,
+                0.20,
+                0.70
+            ],
+            "translation": [
+                0.0,
+                0.0,
+                -4
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0.75,
+                        0,
+                        -2.5
+                    ]
+                },
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.25,
+                        0.5,
+                        2.5
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        -0.75,
+                        0,
+                        -2.5
+                    ]
+                }
+            ]
+        },
+        {
+            "label": "ml_seg_3",
+            "color": [
+                0.10,
+                0.10,
+                0.10
+            ],
+            "translation": [
+                0,
+                0,
+                -8
+            ],
+            "colliders": [
+                {
+                    "shape": "cuboid",
+                    "half_extents": [
+                        0.5,
+                        0.5,
+                        1
+                    ],
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -1
+                    ]
+                },
+                {
+                    "shape": "cylinder",
+                    "half_height": 2,
+                    "radius": 0.5,
+                    "rotation": [
+                        1.57079632679,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -4
+                    ]
+                },
+                {
+                    "shape": "ball",
+                    "radius": 0.5,
+                    "rotation": [
+                        0,
+                        0,
+                        0
+                    ],
+                    "translation": [
+                        0,
+                        0,
+                        -6.4
+                    ]
+                }
+            ]
+        }
+    ],
+    "joints": [
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 1,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                5.0,
+                0.0,
+                2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 1,
+            "child": 2,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                1.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        -2,
+                        0
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 2,
+            "child": 3,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                4.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        0,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 4,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                -5.0,
+                0.0,
+                2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 4,
+            "child": 5,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                1.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        -2,
+                        0
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 5,
+            "child": 6,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                4.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        0,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 7,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 7,
+            "child": 8,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                1.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        -2,
+                        0
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 8,
+            "child": 9,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                4.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        0,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 10,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                5.0,
+                0.0,
+                -2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 10,
+            "child": 11,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                -1.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        2,
+                        0
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 11,
+            "child": 12,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                -4.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        -2,
+                        0
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 13,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                -5.0,
+                0.0,
+                -2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 13,
+            "child": 14,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                -1.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        2,
+                        0
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 14,
+            "child": 15,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                -4.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        -2,
+                        0
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 0,
+            "child": 16,
+            "axis": [
+                0,
+                1,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                -2.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 16,
+            "child": 17,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                -1.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        0,
+                        2
+                    ]
+                }
+            ]
+        },
+        {
+            "kind": "revolute",
+            "parent": 17,
+            "child": 18,
+            "axis": [
+                1,
+                0,
+                0
+            ],
+            "parent_anchor": [
+                0.0,
+                0.0,
+                -4.5
+            ],
+            "child_anchor": [
+                0.0,
+                0.0,
+                -0.5
+            ],
+            "motors": [
+                {
+                    "axis": "ang_x",
+                    "max_force": 4000,
+                    "target_velocity_scale": 3.0,
+                    "limit": [
+                        -2,
+                        0
+                    ]
+                }
+            ]
+        }
+    ]
+}

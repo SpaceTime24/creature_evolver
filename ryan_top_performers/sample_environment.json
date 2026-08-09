@@ -1,0 +1,34 @@
+{
+  "gravity": [
+    0.0,
+    -20.0,
+    0.0
+  ],
+  "fitness": {
+    "forward_weight": 0.04,
+    "upright_weight": 1.0,
+    "height_weight": 0.3,
+    "target_clearance": 3.5,
+    "ground_height": -0.5
+  },
+  "colliders": [
+    {
+      "shape": "cuboid",
+      "half_extents": [
+        500.0,
+        0.5,
+        500.0
+      ],
+      "translation": [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      "color": [
+        0.30,
+        0.30,
+        0.35
+      ]
+    }
+  ]
+}
