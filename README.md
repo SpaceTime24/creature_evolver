@@ -15,6 +15,7 @@ source .venv/bin/activate
 # Install dependencies
 pip install maturin
 pip3 install pygad
+pip install matplotlib
 
 # Build Backend
 cd creature_simulator
